@@ -21,6 +21,6 @@ Modified GNU c library for mPvD support
   * make
   * sudo ./run_tests.sh dns_query \<mode\> \<name\>
     * mode = 1 -> not using pvd feature
-    * mode = 2 binding to a newly created pvd
-    * mode = 3 using both of the above
+    * mode = 2 -> binding to a newly created pvd
+    * mode = 3 -> using both of the above
     * name is the name that should be resolved
