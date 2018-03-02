@@ -15,7 +15,7 @@ if [ ! -d "$DIRECTORY" ]; then
 fi
 
 # patch glibc
-patch -p1 < ../path/glibc.patch
+patch -p1 < ../patch/glibc.patch
 
 # configure and compilation of glibc
 cd ../build
