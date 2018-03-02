@@ -21,6 +21,7 @@ patch -p1 < ../patch/glibc.patch
 cd ../build
 ../glibc/configure --prefix=/usr
 make
+cd ..
 
 
 
