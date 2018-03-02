@@ -13,7 +13,10 @@ Modified GNU c library for mPvD support
 * Set all the .sh file executable:
   * chmod +x run_tests.sh
   * chmod +x sh-tests/*
-  
+
+* Before executing any tests, ensure pvdd is running:
+  * pvdd -v 
+
 * Compile and run the dns query code:
   * make
   * sudo ./run_tests.sh dns_query \<mode\> \<name\>
