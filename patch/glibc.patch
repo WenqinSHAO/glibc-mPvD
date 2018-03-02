@@ -1,0 +1,480 @@
+diff -x '*.gitignore' -x '*.git' '-x*.0' -x requests -x '*.out' -burN glibc_clean/config.make.in glibc/config.make.in
+--- glibc_clean/config.make.in	2017-10-25 22:38:49.216791410 +0200
++++ glibc/config.make.in	2017-12-29 11:08:11.007619961 +0100
+@@ -138,6 +138,7 @@
+ 
+ # Additional libraries.
+ LIBGD = @LIBGD@
++LIBPVD = @LIBPVD@
+ 
+ # Package versions and bug reporting configuration.
+ PKGVERSION = @PKGVERSION@
+diff -x '*.gitignore' -x '*.git' '-x*.0' -x requests -x '*.out' -burN glibc_clean/configure glibc/configure
+--- glibc_clean/configure	2017-10-25 22:38:49.216791410 +0200
++++ glibc/configure	2017-12-30 20:27:41.652099180 +0100
+@@ -615,6 +615,7 @@
+ have_selinux
+ have_libcap
+ have_libaudit
++LIBPVD
+ LIBGD
+ libc_cv_cc_loop_to_function
+ libc_cv_cc_submachine
+@@ -730,6 +731,7 @@
+ docdir
+ oldincludedir
+ includedir
++runstatedir
+ localstatedir
+ sharedstatedir
+ sysconfdir
+@@ -843,6 +845,7 @@
+ sysconfdir='${prefix}/etc'
+ sharedstatedir='${prefix}/com'
+ localstatedir='${prefix}/var'
++runstatedir='${localstatedir}/run'
+ includedir='${prefix}/include'
+ oldincludedir='/usr/include'
+ docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
+@@ -1095,6 +1098,15 @@
+   | -silent | --silent | --silen | --sile | --sil)
+     silent=yes ;;
+ 
++  -runstatedir | --runstatedir | --runstatedi | --runstated \
++  | --runstate | --runstat | --runsta | --runst | --runs \
++  | --run | --ru | --r)
++    ac_prev=runstatedir ;;
++  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
++  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
++  | --run=* | --ru=* | --r=*)
++    runstatedir=$ac_optarg ;;
++
+   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
+     ac_prev=sbindir ;;
+   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
+@@ -1232,7 +1244,7 @@
+ for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
+ 		datadir sysconfdir sharedstatedir localstatedir includedir \
+ 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
+-		libdir localedir mandir
++		libdir localedir mandir runstatedir
+ do
+   eval ac_val=\$$ac_var
+   # Remove trailing slashes.
+@@ -1385,6 +1397,7 @@
+   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
+   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
+   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
++  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
+   --libdir=DIR            object code libraries [EPREFIX/lib]
+   --includedir=DIR        C header files [PREFIX/include]
+   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
+@@ -6392,6 +6405,35 @@
+ $as_echo "$LIBGD" >&6; }
+ 
+ 
++{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libpvd" >&5
++$as_echo_n "checking for libpvd... " >&6; }
++old_LIBS="$LIBS"
++LIBS="$LIBS /usr/local/lib/libpvd.so"
++cat confdefs.h - <<_ACEOF >conftest.$ac_ext
++/* end confdefs.h.  */
++#include <libpvd.h>
++int
++main ()
++{
++char BoundPvdName[PVDNAMSIZ];proc_get_bound_pvd (BoundPvdName)
++  ;
++  return 0;
++}
++_ACEOF
++if ac_fn_c_try_link "$LINENO"; then :
++  LIBPVD=yes
++else
++  LIBPVD=no
++fi
++rm -f core conftest.err conftest.$ac_objext \
++    conftest$ac_exeext conftest.$ac_ext
++CFLAGS="$old_CFLAGS"
++LDFLAGS="$old_LDFLAGS"
++LIBS="$old_LIBS"
++{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBPVD" >&5
++$as_echo "$LIBPVD" >&6; }
++
++
+ # SELinux detection
+ if test x$with_selinux = xno ; then
+   have_selinux=no;
+diff -x '*.gitignore' -x '*.git' '-x*.0' -x requests -x '*.out' -burN glibc_clean/configure.ac glibc/configure.ac
+--- glibc_clean/configure.ac	2017-10-25 22:38:49.216791410 +0200
++++ glibc/configure.ac	2017-12-30 20:26:59.508044773 +0100
+@@ -1708,6 +1708,17 @@
+ AC_MSG_RESULT($LIBGD)
+ AC_SUBST(LIBGD)
+ 
++dnl Check whether we have the pvd library available.
++AC_MSG_CHECKING(for libpvd)
++old_LIBS="$LIBS"
++LIBS="$LIBS /usr/local/lib/libpvd.so"
++AC_TRY_LINK([#include <libpvd.h>], [char BoundPvdName[PVDNAMSIZ];proc_get_bound_pvd (BoundPvdName)], LIBPVD=yes, LIBPVD=no)
++CFLAGS="$old_CFLAGS"
++LDFLAGS="$old_LDFLAGS"
++LIBS="$old_LIBS"
++AC_MSG_RESULT($LIBPVD)
++AC_SUBST(LIBPVD)
++
+ # SELinux detection
+ if test x$with_selinux = xno ; then
+   have_selinux=no;
+diff -x '*.gitignore' -x '*.git' '-x*.0' -x requests -x '*.out' -burN glibc_clean/Makeconfig glibc/Makeconfig
+--- glibc_clean/Makeconfig	2017-10-25 22:38:49.208791470 +0200
++++ glibc/Makeconfig	2018-01-02 10:47:48.755944161 +0100
+@@ -964,6 +964,15 @@
+ pic-default = -DPIC
+ endif
+ 
++# In case pvd lib is available
++ifeq ($(subdir), resolv)
++ifeq (yes, $(LIBPVD))
++	define-pvd = -DPVD_LIB
++else
++	define-pvd =
++endif
++endif
++
+ # Enable object files for different versions of the library.
+ # Various things use $(object-suffixes) to know what all to make.
+ # The compilation rules use $(CPPFLAGS-${SUFFIX}) and $(CFLAGS-${SUFFIX})
+@@ -980,7 +989,7 @@
+ # Under --enable-shared, we will build a shared library of PIC objects.
+ # The PIC object files are named foo.os.
+ object-suffixes += .os
+-CPPFLAGS-.os = -DPIC -DSHARED
++CPPFLAGS-.os = -DPIC -DSHARED $(define-pvd)
+ CFLAGS-.os = $(filter %frame-pointer,$(+cflags)) $(pic-ccflag)
+ libtype.os := lib%_pic.a
+ # This can be changed by a sysdep makefile
+diff -x '*.gitignore' -x '*.git' '-x*.0' -x requests -x '*.out' -burN glibc_clean/Makerules glibc/Makerules
+--- glibc_clean/Makerules	2017-10-25 22:38:49.208791470 +0200
++++ glibc/Makerules	2018-01-02 10:27:29.642675845 +0100
+@@ -756,11 +756,20 @@
+ 
+ # Use our own special initializer and finalizer files for the libc.so
+ # libraries.
++
++# libpvd might be installed on host
++ifeq (yes, $(LIBPVD))
++lib_pvd = /usr/local/lib/libpvd.so
++else
++lib_pvd =
++endif
++
+ $(common-objpfx)libc.so: $(elf-objpfx)soinit.os \
+ 			 $(common-objpfx)libc_pic.os$(libc_pic_clean) \
+ 			 $(elf-objpfx)sofini.os \
+ 			 $(elf-objpfx)interp.os \
+ 			 $(elf-objpfx)ld.so \
++			 $(lib_pvd) \
+ 			 $(shlib-lds)
+ 	$(build-shlib)
+ 	$(call after-link,$@)
+@@ -770,6 +779,7 @@
+ 			 $(elf-objpfx)sofini.os \
+ 			 $(elf-objpfx)interp.os \
+ 			 $(elf-objpfx)ld.so \
++			 $(lib_pvd) \
+ 			 $(shlib-lds)
+ 	$(build-shlib)
+ 	$(call after-link,$@)
+diff -x '*.gitignore' -x '*.git' '-x*.0' -x requests -x '*.out' -burN glibc_clean/resolv/res_init.c glibc/resolv/res_init.c
+--- glibc_clean/resolv/res_init.c	2017-10-25 22:38:38.988869318 +0200
++++ glibc/resolv/res_init.c	2018-02-16 14:47:40.370905782 +0100
+@@ -103,6 +103,9 @@
+ #include <inet/net-internal.h>
+ #include <errno.h>
+ #include <resolv_conf.h>
++#ifdef PVD_LIB
++  #include <libpvd.h>
++#endif
+ 
+ static uint32_t net_mask (struct in_addr);
+ 
+@@ -307,6 +310,91 @@
+       /* No threads use this stream.  */
+       __fsetlocking (fp, FSETLOCKING_BYCALLER);
+       /* Read the config file.  */
++
++			/* pvd case */
++      bool found_rdnss = false;
++      bool found_dnssl = false;
++
++#ifdef PVD_LIB
++			char pvd_name[PVDNAMSIZ];
++			if (proc_get_bound_pvd(pvd_name) == 1) 
++				{
++          t_rdnss_list rdnss_list;
++          t_dnssl_list dnssl_list;
++          t_pvd_connection *pvdd_conn = pvd_connect(-1);
++
++          /* RDNSS */
++			    if (pvd_get_rdnss_sync(pvdd_conn, pvd_name,	&rdnss_list) == 0)
++				    {
++              if (rdnss_list.nrdnss > 0)
++                found_rdnss = true;
++							for(int i = 0; i < rdnss_list.nrdnss; ++i)
++								{
++                  struct in_addr a;
++                  struct sockaddr *sa = NULL;
++                  if (__inet_aton (rdnss_list.rdnss[i], &a))
++                    {
++                      sa = allocate_address_v4 (a, NAMESERVER_PORT);
++                      if (sa == NULL)
++                        return false;
++                    }
++                  else
++                    {
++								      struct in6_addr a6;
++                      if (__inet_pton (AF_INET6, rdnss_list.rdnss[i], &a6) > 0)
++                        {
++                          struct sockaddr_in6 *sa6;
++                          sa6 = malloc (sizeof (*sa6));
++                          if (sa6 == NULL)
++                            return false;
++                          
++                          sa6->sin6_family = AF_INET6;
++                          sa6->sin6_port = htons (NAMESERVER_PORT);
++                          sa6->sin6_flowinfo = 0;
++                          sa6->sin6_addr = a6;
++                          sa6->sin6_scope_id = 0;
++
++                          sa = (struct sockaddr *) sa6;
++                        }
++                    }
++		              if (sa != NULL)
++		                {
++		                  const struct sockaddr **p = nameserver_list_emplace
++		                    (&parser->nameserver_list);
++		                  if (p != NULL)
++                        {
++		                      *p = sa;
++                        }
++		                  else
++		                    {
++		                      free (sa);
++		                      return false;
++		                    }
++		                }
++							  }
++            }
++
++          /* DNSSL */
++          if (pvd_get_dnssl_sync(pvdd_conn, pvd_name,	&dnssl_list) == 0)
++            {
++              if (dnssl_list.ndnssl > 0)
++                found_dnssl = true;
++              /* LOCALDOMAIN overrides the configuration file.  */
++              if (!haveenv && (dnssl_list.ndnssl > 0))
++                {
++                  free (parser->search_list_store);
++                  parser->search_list_store = dnssl_list.dnssl[0];
++
++                  search_list_clear (&parser->search_list);
++                  for(int i = 0; i < dnssl_list.ndnssl; ++i)
++						        { 
++                      search_list_add (&parser->search_list, dnssl_list.dnssl[i]);
++                    }
++                }
++		        }
++          pvd_disconnect(pvdd_conn);
++			  } /* end of pvd case */
++#endif
+       while (true)
+         {
+           {
+@@ -348,7 +436,7 @@
+               continue;
+             }
+           /* Set search list.  */
+-          if (MATCH (parser->buffer, "search"))
++          if (MATCH (parser->buffer, "search") && !found_dnssl)
+             {
+               if (haveenv)
+                 /* LOCALDOMAIN overrides the configuration file.  */
+@@ -392,7 +480,7 @@
+               continue;
+             }
+           /* Read nameservers to query.  */
+-          if (MATCH (parser->buffer, "nameserver"))
++          if (MATCH (parser->buffer, "nameserver") && !found_rdnss)
+             {
+               struct in_addr a;
+ 
+diff -x '*.gitignore' -x '*.git' '-x*.0' -x requests -x '*.out' -burN glibc_clean/resolv/resolv_conf.c glibc/resolv/resolv_conf.c
+--- glibc_clean/resolv/resolv_conf.c	2017-10-25 22:38:38.988869318 +0200
++++ glibc/resolv/resolv_conf.c	2018-02-17 17:55:17.416108444 +0100
+@@ -23,6 +23,10 @@
+ #include <libc-lock.h>
+ #include <resolv-internal.h>
+ #include <sys/stat.h>
++#ifdef PVD_LIB
++  #include <arpa/inet.h>
++  #include <libpvd.h>
++#endif
+ 
+ /* _res._u._ext.__glibc_extension_index is used as an index into a
+    struct resolv_conf_array object.  The intent of this construction
+@@ -145,7 +149,7 @@
+   struct resolv_conf_global *global_copy = get_locked_global ();
+   if (global_copy == NULL)
+     return NULL;
+-  struct resolv_conf *conf;
++  struct resolv_conf *conf = NULL;
+   if (global_copy->conf_current != NULL
+       && (global_copy->conf_mtime.tv_sec == st.st_mtim.tv_sec
+           && global_copy->conf_mtime.tv_nsec == st.st_mtim.tv_nsec
+@@ -153,13 +157,120 @@
+           && global_copy->conf_ctime.tv_nsec == st.st_ctim.tv_nsec
+           && global_copy->conf_ino == st.st_ino
+           && global_copy->conf_size == st.st_size))
+-    /* We can reuse the cached configuration object.  */
++    {
++#ifdef PVD_LIB
++      char pvd_name[PVDNAMSIZ];
++			int bound_pvd = proc_get_bound_pvd(pvd_name);
++      switch (bound_pvd) 
++        {
++          case 0:
++            if (!global_copy->conf_current->using_pvd)
+     conf = global_copy->conf_current;
+   else
++              /* just reload conf if pvd was used previously */
++              conf = NULL;
++          break;
++
++          case 1:
++            conf = global_copy->conf_current;
++            global_copy->conf_current->using_pvd = true;
++
++            t_rdnss_list rdnss_list;
++            t_dnssl_list dnssl_list;
++            t_pvd_connection *pvdd_conn = pvd_connect(-1);
++
++            /* RDNSS */
++			      if (pvd_get_rdnss_sync(pvdd_conn, pvd_name,	&rdnss_list) == 0)
++				      {
++                if (rdnss_list.nrdnss != global_copy->conf_current->nameserver_list_size) 
++                  {
++                    conf = NULL;
++                    goto end_comparison;
++                  }
++							  for(int i = 0; i < rdnss_list.nrdnss; ++i)
++								  {
++                    char *s = NULL;
++                    const struct sockaddr *res = global_copy->conf_current->nameserver_list[i];
++                    switch(res->sa_family) 
++                      {
++                        case AF_INET: ;
++                            struct sockaddr_in *addr_in = (struct sockaddr_in *)res;
++                            s = malloc(INET_ADDRSTRLEN);
++                            inet_ntop(AF_INET, &(addr_in->sin_addr), s, INET_ADDRSTRLEN);
++                            break;
++                          
++                        case AF_INET6: ;
++                            struct sockaddr_in6 *addr_in6 = (struct sockaddr_in6 *)res;
++                            s = malloc(INET6_ADDRSTRLEN);
++                            inet_ntop(AF_INET6, &(addr_in6->sin6_addr), s, INET6_ADDRSTRLEN);
++                            break;
++                          
++                        default:
++                            goto end_comparison;
++                            break;
++                      }
++
++                    if (strcmp(s, rdnss_list.rdnss[i]) != 0)
++                      {
++                        conf = NULL;
++                        goto end_comparison;
++                      }
++                  }
++              }
++ 
++            /* DNSSL */
++            if (pvd_get_dnssl_sync(pvdd_conn, pvd_name,	&dnssl_list) == 0)
++              {
++                if (dnssl_list.ndnssl != global_copy->conf_current->search_list_size) {
++                  conf = NULL;
++                  goto end_comparison;
++                }
++                for(int i = 0; i < dnssl_list.ndnssl; ++i)
++				          {
++                    if (strcmp(global_copy->conf_current->search_list[i], dnssl_list.dnssl[i]) != 0)
++                      {
++                        conf = NULL;
++                        goto end_comparison;
++                      }
++                    
++                  }
++		          }
++end_comparison:
++            pvd_disconnect(pvdd_conn);
++          break;
++                 
++          default:
++            return NULL;
++          break;
++        }
++#else
++    /* We can reuse the cached configuration object.  */
++    conf = global_copy->conf_current;
++#endif
++    }
++  if (conf == NULL)
+     {
+       /* Parse configuration while holding the lock.  This avoids
+          duplicate work.  */
+       conf = __resolv_conf_load (NULL);
++#ifdef PVD_LIB
++      char pvd_name[PVDNAMSIZ];
++      int bound_pvd = proc_get_bound_pvd(pvd_name);
++      switch (bound_pvd) 
++        {
++          case 0:
++            conf->using_pvd = false;
++          break;
++
++          case 1:
++            conf->using_pvd = true;
++          break;
++                 
++          default:
++            return NULL;
++          break;
++        }
++#endif
+       if (conf != NULL)
+         {
+           if (global_copy->conf_current != NULL)
+diff -x '*.gitignore' -x '*.git' '-x*.0' -x requests -x '*.out' -burN glibc_clean/resolv/resolv_conf.h glibc/resolv/resolv_conf.h
+--- glibc_clean/resolv/resolv_conf.h	2017-10-25 22:38:38.988869318 +0200
++++ glibc/resolv/resolv_conf.h	2018-02-17 15:58:33.288004697 +0100
+@@ -22,6 +22,9 @@
+ #include <netinet/in.h>
+ #include <stdbool.h>
+ #include <stddef.h>
++#ifdef PVD_LIB
++  #include <libpvd.h>
++#endif
+ 
+ /* This type corresponds to members of the _res.sort_list array.  */
+ struct resolv_sortlist_entry
+@@ -57,6 +60,10 @@
+   unsigned int retrans;         /* Timeout.  */
+   unsigned int retry;           /* Number of times to retry.  */
+   unsigned int ndots; /* Dots needed for initial non-search query.  */
++
++#ifdef PVD_LIB
++  bool using_pvd;
++#endif
+ };
+ 
+ /* The functions below are for use by the res_init resolv.conf parser
