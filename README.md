@@ -24,3 +24,5 @@ Modified GNU c library for mPvD support
     * mode = 2 -> binding to a newly created pvd
     * mode = 3 -> using both of the above
     * name is the name that should be resolved
+
+NB: tests are running using ./build/testrun.sh. It is simply an automated way to link newly compiled libraries to the tests programs. Thus, the installed version of glibc on the host is bypassed. More information about this script can be retrieved on [sourceware](https://sourceware.org/glibc/wiki/Testing/Builds). 
