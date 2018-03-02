@@ -16,7 +16,7 @@ Modified GNU c library for mPvD support
   
 * Compile and run the dns query code:
   * make
-  * sudo ./run_tests.sh dns_query <mode> <name>
+  * sudo ./run_tests.sh dns_query \<mode\> \<name\>
     * mode = 1 -> not using pvd feature
     * mode = 2 binding to a newly created pvd
     * mode = 3 using both of the above
