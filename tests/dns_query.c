@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
     }
     
     /* inserting attributes (using dedicated bash script) */
-    if (system("~/Documents/tests/sh-tests/pvdid-setattr.sh") != 0) {
+    if (system("../tests/sh-tests/pvdid-setattr.sh") != 0) {
       fprintf(stderr, "Attribute update through bash script failed!\n");
       return -1;
     }
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
       return -1;
     
     /* updating attributes (using dedicated bash script) */
-    if (system("~/Documents/tests/sh-tests/pvdid-setattr2.sh") != 0) {
+    if (system("../tests/sh-tests/pvdid-setattr2.sh") != 0) {
       fprintf(stderr, "Attribute update through bash script failed!\n");
       return -1;
     }
