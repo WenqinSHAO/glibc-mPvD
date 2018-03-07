@@ -8,10 +8,12 @@ sudo cp libpvd/libpvd.so /usr/local/lib/
 mkdir build
 
 # downloading glibc source
-if [ ! -d "$DIRECTORY" ]; then
+if [ ! -d "glibc" ]; then
   git clone git://sourceware.org/git/glibc.git
   cd glibc
   git checkout --track -b local_glibc-2.27 origin/release/2.27/master
+else
+  cd glibc
 fi
 
 # patch glibc
