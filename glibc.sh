@@ -3,6 +3,7 @@
 # copying libpvd files
 sudo cp libpvd/libpvd.h /usr/include/
 sudo cp libpvd/libpvd.so /usr/local/lib/
+sudo cp libpvd/pvd-user.h /usr/include/linux/
 
 # Creating the build directory
 mkdir build

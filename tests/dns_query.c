@@ -103,24 +103,24 @@ int main(int argc, char *argv[]) {
     /* inserting attributes (using dedicated bash script) */
     if (system("../tests/sh-tests/pvdid-setattr.sh") != 0) {
       fprintf(stderr, "Attribute update through bash script failed!\n");
-      return -1;
+      goto free_pvd;
     }
 
 
     /* binding process to pvd */
     if (proc_bind_to_pvd(pvd_name) == -1) {
       fprintf(stderr, "Binding to pvd.cisco.com failed!\n");
-      return -1;
+      goto free_pvd;
     }
     
     /* dns query with pvd values */
     if (mk_query(argv[2]) == -1) 
-      return -1;
+      goto free_pvd;
     
     /* updating attributes (using dedicated bash script) */
     if (system("../tests/sh-tests/pvdid-setattr2.sh") != 0) {
       fprintf(stderr, "Attribute update through bash script failed!\n");
-      return -1;
+      goto free_pvd;
     }
 
     printf(" ------------------\n");
@@ -129,9 +129,9 @@ int main(int argc, char *argv[]) {
 
     /* dns query with new pvd values */
     if (mk_query(argv[2]) == -1) 
-      return -1; 
+      goto free_pvd;
 
-   
+free_pvd:  
     /* binding process to pvd */
     if (proc_bind_to_nopvd() == -1) {
       fprintf(stderr, "Unbinding to pvd.cisco.com failed!\n");
@@ -150,4 +150,3 @@ int main(int argc, char *argv[]) {
   usage();
   return -1;
 }
-
